@@ -286,13 +286,16 @@ let
           mkHomeConfiguration =
             {
               username,
+              hostName,
               modulePath,
               pkgs,
               system,
             }:
             home-manager.lib.homeManagerConfiguration {
               inherit pkgs;
-              extraSpecialArgs = specialArgs;
+              extraSpecialArgs = specialArgs // {
+                inherit hostName;
+              };
               modules = [
                 (perSystemArgsModule system)
                 modulePath
@@ -335,6 +338,7 @@ let
               mkHomeConfiguration {
                 inherit (homeData) modulePath username;
                 inherit pkgs system;
+                hostName = homeData.hostname;
               }
             ) homesFlat;
           }
@@ -353,7 +357,8 @@ let
               modules = [
                 perSystemModule
                 path
-              ] ++ mkHomeUsersModule hostName home-manager.nixosModules.default;
+              ]
+              ++ mkHomeUsersModule hostName home-manager.nixosModules.default;
               specialArgs = specialArgs // {
                 inherit hostName;
               };
@@ -373,7 +378,8 @@ let
                 modules = [
                   perSystemModule
                   path
-                ] ++ mkHomeUsersModule hostName home-manager.darwinModules.default;
+                ]
+                ++ mkHomeUsersModule hostName home-manager.darwinModules.default;
                 specialArgs = specialArgs // {
                   inherit hostName;
                 };
@@ -505,10 +511,7 @@ let
     in
     # FIXME: maybe there are two layers to this. The blueprint, and then the mapping to flake outputs.
     {
-      formatter = eachSystem (
-        { pkgs, perSystem, ... }:
-        perSystem.self.formatter or pkgs.nixfmt-tree
-      );
+      formatter = eachSystem ({ pkgs, perSystem, ... }: perSystem.self.formatter or pkgs.nixfmt-tree);
 
       lib = tryImport (src + "/lib") specialArgs;
 
