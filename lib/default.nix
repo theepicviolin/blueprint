@@ -317,7 +317,9 @@ let
                       lib.mkDefault homeDir;
                   }
                 )
-              ];
+              ]
+              ++ lib.attrsets.attrValues flake.homeModules
+              ++ lib.attrsets.attrValues flake.modules.common or { };
             };
 
           homesFlat = lib.concatMapAttrs (
@@ -360,7 +362,7 @@ let
               ]
               ++ mkHomeUsersModule hostName home-manager.nixosModules.default
               ++ inputs.nixpkgs.lib.attrsets.attrValues flake.nixosModules
-              ++ inputs.nixpkgs.lib.attrsets.attrValues flake.modules.common;
+              ++ inputs.nixpkgs.lib.attrsets.attrValues flake.modules.common or { };
               specialArgs = specialArgs // {
                 inherit hostName;
               };
