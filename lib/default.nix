@@ -365,6 +365,28 @@ let
             };
           };
 
+          loadNixOSRPi =
+            hostName: path:
+            let
+              nixos-raspberrypi =
+                inputs.nixos-raspberrypi
+                  or (throw ''${path} depends on nixos-raspberrypi. To fix this, add `inputs.nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi";` to your flake'');
+            in
+            {
+              class = "nixos";
+              value = nixos-raspberrypi.lib.nixosSystem {
+                modules = [
+                  perSystemModule
+                  path
+                ]
+                ++ mkHomeUsersModule hostName home-manager.nixosModules.default;
+                specialArgs = specialArgs // {
+                  inherit hostName;
+                  nixos-raspberrypi = inputs.nixos-raspberrypi;
+                };
+              };
+            };
+
           loadNixDarwin =
             hostName: path:
             let
@@ -413,6 +435,8 @@ let
               loadDefault name (path + "/default.nix")
             else if builtins.pathExists (path + "/configuration.nix") then
               loadNixOS name (path + "/configuration.nix")
+            else if builtins.pathExists (path + "/rpi-configuration.nix") then
+              loadNixOSRPi name (path + "/rpi-configuration.nix")
             else if builtins.pathExists (path + "/darwin-configuration.nix") then
               loadNixDarwin name (path + "/darwin-configuration.nix")
             else if builtins.pathExists (path + "/system-configuration.nix") then
@@ -439,6 +463,10 @@ let
             "darwinConfigurations"
           else if x.value.class == "system-manager" then
             "systemConfigs"
+          else if x.value.class == "robotnix" then
+            "robotnixConfigurations"
+          else if x.value.class == "nix-on-droid" then
+            "nixOnDroidConfigurations"
           else
             throw "host '${x.name}' of class '${x.value.class or "unknown"}' not supported"
         ) (lib.attrsToList hosts)
@@ -609,6 +637,8 @@ let
       darwinConfigurations = lib.mapAttrs (_: x: x.value) (hostsByCategory.darwinConfigurations or { });
       nixosConfigurations = lib.mapAttrs (_: x: x.value) (hostsByCategory.nixosConfigurations or { });
       systemConfigs = lib.mapAttrs (_: x: x.value) (hostsByCategory.systemConfigs or { });
+      robotnixConfigurations = lib.mapAttrs (_: x: x.value) (hostsByCategory.robotnixConfigurations or { });
+      nixOnDroidConfigurations = lib.mapAttrs (_: x: x.value) (hostsByCategory.nixOnDroidConfigurations or { });
 
       inherit modules;
 
