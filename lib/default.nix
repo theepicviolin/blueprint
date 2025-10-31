@@ -358,7 +358,9 @@ let
                 perSystemModule
                 path
               ]
-              ++ mkHomeUsersModule hostName home-manager.nixosModules.default;
+              ++ mkHomeUsersModule hostName home-manager.nixosModules.default
+              ++ inputs.nixpkgs.lib.attrsets.attrValues flake.nixosModules
+              ++ inputs.nixpkgs.lib.attrsets.attrValues flake.modules.common;
               specialArgs = specialArgs // {
                 inherit hostName;
               };
@@ -637,8 +639,12 @@ let
       darwinConfigurations = lib.mapAttrs (_: x: x.value) (hostsByCategory.darwinConfigurations or { });
       nixosConfigurations = lib.mapAttrs (_: x: x.value) (hostsByCategory.nixosConfigurations or { });
       systemConfigs = lib.mapAttrs (_: x: x.value) (hostsByCategory.systemConfigs or { });
-      robotnixConfigurations = lib.mapAttrs (_: x: x.value) (hostsByCategory.robotnixConfigurations or { });
-      nixOnDroidConfigurations = lib.mapAttrs (_: x: x.value) (hostsByCategory.nixOnDroidConfigurations or { });
+      robotnixConfigurations = lib.mapAttrs (_: x: x.value) (
+        hostsByCategory.robotnixConfigurations or { }
+      );
+      nixOnDroidConfigurations = lib.mapAttrs (_: x: x.value) (
+        hostsByCategory.nixOnDroidConfigurations or { }
+      );
 
       inherit modules;
 
