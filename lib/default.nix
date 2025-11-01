@@ -234,8 +234,14 @@ let
           module =
             { perSystem, config, ... }:
             {
-              imports = [ homeManagerModule ];
-              home-manager.sharedModules = [ perSystemHMModule ];
+              imports = [
+                homeManagerModule
+              ];
+              home-manager.sharedModules = [
+                perSystemHMModule
+              ]
+              ++ inputs.nixpkgs.lib.attrsets.attrValues flake.homeModules
+              ++ inputs.nixpkgs.lib.attrsets.attrValues flake.modules.common or { };
               home-manager.extraSpecialArgs = specialArgs;
               home-manager.users = homesNested.${hostname};
               home-manager.useGlobalPkgs = lib.mkDefault true;
